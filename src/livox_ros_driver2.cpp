@@ -91,7 +91,7 @@ int main(int argc, char **argv) {
 
     std::string user_config_path;
     livox_node.getParam("user_config_path", user_config_path);
-    DRIVER_INFO(livox_node, "Config file : %s", user_config_path.c_str());
+    DRIVER_INFO(livox_node, "Config file: %s", user_config_path.c_str());
 
     LdsLidar *read_lidar = LdsLidar::GetInstance(publish_freq);
     livox_node.lddc_ptr_->RegisterLds(static_cast<Lds *>(read_lidar));
@@ -164,7 +164,7 @@ DriverNode::DriverNode(const rclcpp::NodeOptions & node_options)
 
     std::string user_config_path;
     this->get_parameter("user_config_path", user_config_path);
-    DRIVER_INFO(*this, "Config file : %s", user_config_path.c_str());
+    DRIVER_INFO(*this, "Config file: %s", user_config_path.c_str());
 
     std::string cmdline_bd_code;
     this->get_parameter("cmdline_input_bd_code", cmdline_bd_code);
