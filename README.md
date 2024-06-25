@@ -1,3 +1,9 @@
+# ROS2 jazzy fork
+
+This fork is adapted to ROS2 (jazzy). We've cleaned up the file structure and Cmake procedure so that the driver can be built with `colcon build`.
+
+Original instructions see below.
+
 # Livox ROS Driver 2
 
 Livox ROS Driver 2 is the 2nd-generation driver package used to connect LiDAR products produced by Livox, applicable for ROS (noetic recommended) and ROS2 (foxy or humble recommended).
