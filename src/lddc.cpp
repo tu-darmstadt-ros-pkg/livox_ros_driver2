@@ -646,9 +646,9 @@ std::shared_ptr<rclcpp::PublisherBase> Lddc::GetCurrentPublisher(uint8_t handle)
       char name_str[48];
       memset(name_str, 0, sizeof(name_str));
 
-      std::string ip_string = IpNumToString(lds_->lidars_[handle].handle);
-      snprintf(name_str, sizeof(name_str), "livox/lidar_%s",
-          ReplacePeriodByUnderline(ip_string).c_str());
+      std::string ld_name = lds_->lidars_[handle].livox_config.ld_name;
+      snprintf(name_str, sizeof(name_str), "livox_lidar/%s/points",
+          ReplacePeriodByUnderline(ld_name).c_str());
       std::string topic_name(name_str);
       queue_size = queue_size * 2; // queue size is 64 for only one lidar
       private_pub_[handle] = CreatePublisher(transfer_format_, topic_name, queue_size);
@@ -656,7 +656,7 @@ std::shared_ptr<rclcpp::PublisherBase> Lddc::GetCurrentPublisher(uint8_t handle)
     return private_pub_[handle];
   } else {
     if (!global_pub_) {
-      std::string topic_name("livox/lidar");
+      std::string topic_name("livox/lidar/points");
       queue_size = queue_size * 8; // shared queue size is 256, for all lidars
       global_pub_ = CreatePublisher(transfer_format_, topic_name, queue_size);
     }
@@ -670,9 +670,9 @@ std::shared_ptr<rclcpp::PublisherBase> Lddc::GetCurrentImuPublisher(uint8_t hand
     if (!private_imu_pub_[handle]) {
       char name_str[48];
       memset(name_str, 0, sizeof(name_str));
-      std::string ip_string = IpNumToString(lds_->lidars_[handle].handle);
-      snprintf(name_str, sizeof(name_str), "livox/imu_%s",
-          ReplacePeriodByUnderline(ip_string).c_str());
+      std::string ld_name = lds_->lidars_[handle].livox_config.ld_name;
+      snprintf(name_str, sizeof(name_str), "livox_lidar/%s/imu",
+          ReplacePeriodByUnderline(ld_name).c_str());
       std::string topic_name(name_str);
       queue_size = queue_size * 2; // queue size is 64 for only one lidar
       private_imu_pub_[handle] = CreatePublisher(kLivoxImuMsg, topic_name,
@@ -681,7 +681,7 @@ std::shared_ptr<rclcpp::PublisherBase> Lddc::GetCurrentImuPublisher(uint8_t hand
     return private_imu_pub_[handle];
   } else {
     if (!global_imu_pub_) {
-      std::string topic_name("livox/imu");
+      std::string topic_name("livox_lidar/imu");
       queue_size = queue_size * 8; // shared queue size is 256, for all lidars
       global_imu_pub_ = CreatePublisher(kLivoxImuMsg, topic_name, queue_size);
     }
