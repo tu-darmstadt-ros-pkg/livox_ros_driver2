@@ -103,6 +103,18 @@ bool LivoxLidarConfigParser::ParseUserConfigs(const rapidjson::Document &doc,
     } else {
       user_config.frame_id = static_cast<std::string>(config["frame_id"].GetString());
     }
+    if (!config.HasMember("imu_frame_id")) {
+      user_config.imu_frame_id = user_config.frame_id;
+      std::cout << "No imu frame id was given, set to same as lidar frame" << std::endl;
+    } else {
+      user_config.imu_frame_id = static_cast<std::string>(config["imu_frame_id"].GetString());
+    }
+    if (!config.HasMember("imu_as_gforce")) {
+      user_config.imu_as_gforce = false;
+      std::cout << "No imu preference was given, publishing in m/s^2 as ros standard" << std::endl;
+    } else {
+      user_config.imu_as_gforce = static_cast<bool>(config["imu_as_gforce"].GetBool());
+    }
     
     if (!config.HasMember("extrinsic_parameter")) {
       memset(&user_config.extrinsic_param, 0, sizeof(user_config.extrinsic_param));

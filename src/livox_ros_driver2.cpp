@@ -57,8 +57,10 @@ int main(int argc, char **argv) {
   double publish_freq  = 10.0; /* Hz */
   int output_type      = kOutputToRos;
   std::string frame_id = "livox_frame";
+  std::string imu_frame_id = "";
   bool lidar_bag = true;
   bool imu_bag   = false;
+  bool imu_as_gforce = false;
 
   livox_node.GetNode().getParam("xfer_format", xfer_format);
   livox_node.GetNode().getParam("multi_topic", multi_topic);
@@ -66,9 +68,12 @@ int main(int argc, char **argv) {
   livox_node.GetNode().getParam("publish_freq", publish_freq);
   livox_node.GetNode().getParam("output_data_type", output_type);
   livox_node.GetNode().getParam("frame_id", frame_id);
+  livox_node.GetNode().getParam("imu_frame_id", imu_frame_id);
   livox_node.GetNode().getParam("enable_lidar_bag", lidar_bag);
   livox_node.GetNode().getParam("enable_imu_bag", imu_bag);
+  livox_node.GetNode().getParam("imu_as_gforce", imu_as_gforce);
 
+  
   printf("data source:%u.\n", data_src);
 
   if (publish_freq > 100.0) {
@@ -78,6 +83,10 @@ int main(int argc, char **argv) {
   } else {
     publish_freq = publish_freq;
   }
+  if (imu_frame_id.empty()) {
+    imu_frame_id = frame_id;
+    DRIVER_INFO(livox_node, "No imu frame id was given, set to same as lidar frame");
+  } 
 
   livox_node.future_ = livox_node.exit_signal_.get_future();
 
@@ -127,6 +136,8 @@ DriverNode::DriverNode(const rclcpp::NodeOptions & node_options)
   double publish_freq = 10.0; /* Hz */
   int output_type = kOutputToRos;
   std::string frame_id;
+  std::string imu_frame_id;
+  bool imu_as_gforce = false;
 
   this->declare_parameter("xfer_format", xfer_format);
   this->declare_parameter("multi_topic", 0);
@@ -134,9 +145,11 @@ DriverNode::DriverNode(const rclcpp::NodeOptions & node_options)
   this->declare_parameter("publish_freq", 10.0);
   this->declare_parameter("output_data_type", output_type);
   this->declare_parameter("frame_id", "frame_default");
+  this->declare_parameter("imu_frame_id", "");
   this->declare_parameter("user_config_path", "path_default");
   this->declare_parameter("cmdline_input_bd_code", "000000000000001");
   this->declare_parameter("lvx_file_path", "/home/livox/livox_test.lvx");
+  this->declare_parameter("imu_as_gforce", imu_as_gforce);
 
   this->get_parameter("xfer_format", xfer_format);
   this->get_parameter("multi_topic", multi_topic);
@@ -144,6 +157,8 @@ DriverNode::DriverNode(const rclcpp::NodeOptions & node_options)
   this->get_parameter("publish_freq", publish_freq);
   this->get_parameter("output_data_type", output_type);
   this->get_parameter("frame_id", frame_id);
+  this->get_parameter("imu_frame_id", imu_frame_id);
+  this->get_parameter("imu_as_gforce", imu_as_gforce);
 
   if (publish_freq > 100.0) {
     publish_freq = 100.0;
@@ -151,6 +166,11 @@ DriverNode::DriverNode(const rclcpp::NodeOptions & node_options)
     publish_freq = 0.5;
   } else {
     publish_freq = publish_freq;
+  }
+
+  if (imu_frame_id.empty()) {
+    imu_frame_id = frame_id;
+    DRIVER_INFO(*this, "No imu frame id was given, set to same as lidar frame");
   }
 
   future_ = exit_signal_.get_future();

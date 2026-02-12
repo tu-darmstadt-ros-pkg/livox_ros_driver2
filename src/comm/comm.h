@@ -265,10 +265,12 @@ typedef struct {
   int32_t blind_spot_set;
   int8_t dual_emit_en;
   std::string frame_id;
+  std::string imu_frame_id;
   ExtParameter extrinsic_param;
   std::string ld_name;
   volatile uint32_t set_bits;
   volatile uint32_t get_bits;
+  bool imu_as_gforce;
 } UserLivoxLidarConfig;
 
 /** Lidar data source info abstract */

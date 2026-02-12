@@ -181,7 +181,7 @@ void Lddc::PollingLidarPointCloudData(uint8_t index, LidarDevice *lidar) {
 void Lddc::PollingLidarImuData(uint8_t index, LidarDevice *lidar) {
   LidarImuDataQueue& p_queue = lidar->imu_data;
   while (!lds_->IsRequestExit() && !p_queue.Empty()) {
-    PublishImuData(p_queue, index, lidar->livox_config.frame_id);
+    PublishImuData(p_queue, index, lidar->livox_config.imu_frame_id, lidar->livox_config.imu_as_gforce);
   }
 }
 
@@ -479,7 +479,7 @@ void Lddc::PublishPclData(const uint8_t index, const uint64_t timestamp, const P
   return;
 }
 
-void Lddc::InitImuMsg(const ImuData& imu_data, ImuMsg& imu_msg, uint64_t& timestamp, const std::string& frame_id) {
+void Lddc::InitImuMsg(const ImuData& imu_data, ImuMsg& imu_msg, uint64_t& timestamp, const std::string& frame_id, const bool as_gforce) {
   imu_msg.header.frame_id = frame_id;
 
   timestamp = imu_data.time_stamp;
@@ -495,9 +495,15 @@ void Lddc::InitImuMsg(const ImuData& imu_data, ImuMsg& imu_msg, uint64_t& timest
   imu_msg.linear_acceleration.x = imu_data.acc_x;
   imu_msg.linear_acceleration.y = imu_data.acc_y;
   imu_msg.linear_acceleration.z = imu_data.acc_z;
+
+  if (as_gforce) {
+    imu_msg.linear_acceleration.x = imu_msg.linear_acceleration.x * 9.80665f;
+    imu_msg.linear_acceleration.y = imu_msg.linear_acceleration.y * 9.80665f;
+    imu_msg.linear_acceleration.z = imu_msg.linear_acceleration.z * 9.80665f;
+  }
 }
 
-void Lddc::PublishImuData(LidarImuDataQueue& imu_data_queue, const uint8_t index, const std::string& frame_id) {
+void Lddc::PublishImuData(LidarImuDataQueue& imu_data_queue, const uint8_t index, const std::string& frame_id, const bool as_gforce) {
   ImuData imu_data;
   if (!imu_data_queue.Pop(imu_data)) {
     //printf("Publish imu data failed, imu data queue pop failed.\n");
@@ -506,7 +512,7 @@ void Lddc::PublishImuData(LidarImuDataQueue& imu_data_queue, const uint8_t index
 
   ImuMsg imu_msg;
   uint64_t timestamp;
-  InitImuMsg(imu_data, imu_msg, timestamp, frame_id);
+  InitImuMsg(imu_data, imu_msg, timestamp, frame_id, as_gforce);
 
 #ifdef BUILDING_ROS1
   PublisherPtr publisher_ptr = GetCurrentImuPublisher(index);
