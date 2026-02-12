@@ -496,7 +496,7 @@ void Lddc::InitImuMsg(const ImuData& imu_data, ImuMsg& imu_msg, uint64_t& timest
   imu_msg.linear_acceleration.y = imu_data.acc_y;
   imu_msg.linear_acceleration.z = imu_data.acc_z;
 
-  if (as_gforce) {
+  if (!as_gforce) {
     imu_msg.linear_acceleration.x = imu_msg.linear_acceleration.x * 9.80665f;
     imu_msg.linear_acceleration.y = imu_msg.linear_acceleration.y * 9.80665f;
     imu_msg.linear_acceleration.z = imu_msg.linear_acceleration.z * 9.80665f;
