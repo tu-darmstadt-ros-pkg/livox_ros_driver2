@@ -37,6 +37,7 @@ find_package(std_msgs REQUIRED)
 find_package(builtin_interfaces REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 find_package(livox_sdk2 REQUIRED)
+find_package(fmt REQUIRED)
 
 # check apr
 find_package(PkgConfig)
@@ -104,6 +105,7 @@ target_link_libraries(${PROJECT_NAME}
   ${Boost_LIBRARY}
   ${PCL_LIBRARIES}
   ${APR_LIBRARIES}
+  fmt::fmt
 )
 
 rclcpp_components_register_node(${PROJECT_NAME}
