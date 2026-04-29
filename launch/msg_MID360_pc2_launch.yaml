@@ -1,11 +1,16 @@
 # Launch file to load livox_ros_driver2 and livox_to_pointcloud2 as components into a component_container
 launch:
+  - arg:
+      name: compressing
+      default: "true"
+
   - node_container:
       pkg: rclcpp_components
       exec: component_container
       name: livox_driver_container
       namespace: ''
       composable_node:
+        # The actual lidar driver
         - pkg: livox_ros_driver2
           plugin: livox_ros::DriverNode
           name: livox_ros_driver2
@@ -18,11 +23,28 @@ launch:
               value: 1
             - name: publish_freq
               value: '$(var publish_freq)'
+        # Convert the custom livox format to PointCloud2      
         - pkg: livox_to_pointcloud2
           plugin: livox_to_pointcloud2::LivoxToPointCloud2
           name: livox_to_pointcloud2
           param:
             - name: input_topics
-              value: '$(var input_topics)'
+              value: '$(var input_topics_pc2)'
             - name: output_topics
-              value: '$(var output_topics)'
+              value: '$(var output_topics_pc2)'
+        # Compress the PointCloud2 messages using cloudini_ros      
+        - pkg: "cloudini_ros"
+          plugin: "CloudiniPointcloudConverterMulti"
+          name: "cloudini_converter"
+          param:
+            - name: "compressing"
+              value: "$(var compressing)"
+            - name: "topics_input"
+              value: $(var input_topics_cloudini)
+            - name: "topics_output"
+              value: $(var output_topics_cloudini)
+            - name: "resolution"
+              value: "$(var pc_resolution)"
+          extra_arg:
+            - name: "use_intra_process_comms"
+              value: "true"
