@@ -22,6 +22,8 @@
   <depend>livox_sdk2</depend>
   <depend>fmt</depend>
 
+  <!-- use our cloudini fork: https://github.com/tu-darmstadt-ros-pkg/cloudini -->
+  <exec_depend>cloudini_ros</exec_depend>
   <exec_depend>rosbag2</exec_depend>
   <exec_depend>rosidl_default_runtime</exec_depend>
 
