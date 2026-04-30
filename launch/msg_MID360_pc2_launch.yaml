@@ -35,7 +35,7 @@ launch:
         # Compress the PointCloud2 messages using cloudini_ros      
         - pkg: "cloudini_ros"
           plugin: "CloudiniPointcloudConverterMulti"
-          name: "cloudini_converter"
+          name: "livox_driver_cloudini_converter"
           param:
             - name: "compressing"
               value: "$(var compressing)"
