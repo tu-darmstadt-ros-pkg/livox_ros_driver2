@@ -45,6 +45,7 @@ typedef enum {
   kLivoxCustomMsg = 1,
   kPclPxyziMsg = 2,
   kLivoxImuMsg = 3,
+  kPointCloud2CustomMsg = 4,  /* PointCloud2 with CustomMsg fields: xyz, reflectivity(u8), tag, line, offset_time(u32) */
 } TransferType;
 
 /** Type-Definitions based on ROS versions */
@@ -104,12 +105,16 @@ class Lddc final {
   void PublishPointcloud2(LidarDataQueue *queue, uint8_t index, const std::string& frame_id);
   void PublishCustomPointcloud(LidarDataQueue *queue, uint8_t index, const std::string& frame_id);
   void PublishPclMsg(LidarDataQueue *queue, uint8_t index, const std::string& frame_id);
+  void PublishCustomMsgAsPointCloud2(LidarDataQueue *queue, uint8_t index, const std::string& frame_id);
 
   void PublishImuData(LidarImuDataQueue& imu_data_queue, const uint8_t index, const std::string& frame_id, const bool as_gforce);
 
   void InitPointcloud2MsgHeader(PointCloud2& cloud, const std::string& frame_id);
   void InitPointcloud2Msg(const StoragePacket& pkg, PointCloud2& cloud, uint64_t& timestamp, const std::string& frame_id);
   void PublishPointcloud2Data(const uint8_t index, uint64_t timestamp, const PointCloud2& cloud);
+
+  void InitCustomMsgAsPointCloud2Header(PointCloud2& cloud, const std::string& frame_id);
+  void InitCustomMsgAsPointCloud2(const StoragePacket& pkg, PointCloud2& cloud, uint64_t& timestamp, const std::string& frame_id);
 
   void InitCustomMsg(CustomMsg& livox_msg, const StoragePacket& pkg, uint8_t index, const std::string& frame_id);
   void FillPointsToCustomMsg(CustomMsg& livox_msg, const StoragePacket& pkg);

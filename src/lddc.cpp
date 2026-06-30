@@ -174,6 +174,8 @@ void Lddc::PollingLidarPointCloudData(uint8_t index, LidarDevice *lidar) {
       PublishCustomPointcloud(p_queue, index, lidar->livox_config.frame_id);
     } else if (kPclPxyziMsg == transfer_format_) {
       PublishPclMsg(p_queue, index, lidar->livox_config.frame_id);
+    } else if (kPointCloud2CustomMsg == transfer_format_) {
+      PublishCustomMsgAsPointCloud2(p_queue, index, lidar->livox_config.frame_id);
     }
   }
 }
@@ -418,6 +420,88 @@ void Lddc::PublishCustomPointData(const CustomMsg& livox_msg, const uint8_t inde
   }
 }
 
+void Lddc::PublishCustomMsgAsPointCloud2(LidarDataQueue *queue, uint8_t index, const std::string& frame_id) {
+  while(!QueueIsEmpty(queue)) {
+    StoragePacket pkg;
+    QueuePop(queue, &pkg);
+    if (pkg.points.empty()) {
+      printf("Publish custom pointcloud2 failed, the pkg points is empty.\n");
+      continue;
+    }
+
+    PointCloud2 cloud;
+    uint64_t timestamp = 0;
+    InitCustomMsgAsPointCloud2(pkg, cloud, timestamp, frame_id);
+    PublishPointcloud2Data(index, timestamp, cloud);
+  }
+}
+
+void Lddc::InitCustomMsgAsPointCloud2Header(PointCloud2& cloud, const std::string& frame_id) {
+  cloud.header.frame_id.assign(frame_id);
+  cloud.height = 1;
+  cloud.width = 0;
+  cloud.fields.resize(7);
+  cloud.fields[0].offset = 0;
+  cloud.fields[0].name = "x";
+  cloud.fields[0].count = 1;
+  cloud.fields[0].datatype = PointField::FLOAT32;
+  cloud.fields[1].offset = 4;
+  cloud.fields[1].name = "y";
+  cloud.fields[1].count = 1;
+  cloud.fields[1].datatype = PointField::FLOAT32;
+  cloud.fields[2].offset = 8;
+  cloud.fields[2].name = "z";
+  cloud.fields[2].count = 1;
+  cloud.fields[2].datatype = PointField::FLOAT32;
+  cloud.fields[3].offset = 12;
+  cloud.fields[3].name = "reflectivity";
+  cloud.fields[3].count = 1;
+  cloud.fields[3].datatype = PointField::UINT8;
+  cloud.fields[4].offset = 13;
+  cloud.fields[4].name = "tag";
+  cloud.fields[4].count = 1;
+  cloud.fields[4].datatype = PointField::UINT8;
+  cloud.fields[5].offset = 14;
+  cloud.fields[5].name = "line";
+  cloud.fields[5].count = 1;
+  cloud.fields[5].datatype = PointField::UINT8;
+  cloud.fields[6].offset = 16;
+  cloud.fields[6].name = "offset_time";
+  cloud.fields[6].count = 1;
+  cloud.fields[6].datatype = PointField::UINT32;
+  cloud.point_step = sizeof(LivoxPointXyzrlo);
+}
+
+void Lddc::InitCustomMsgAsPointCloud2(const StoragePacket& pkg, PointCloud2& cloud, uint64_t& timestamp, const std::string& frame_id) {
+  InitCustomMsgAsPointCloud2Header(cloud, frame_id);
+
+  cloud.width = pkg.points_num;
+  cloud.row_step = cloud.width * cloud.point_step;
+  cloud.is_bigendian = false;
+  cloud.is_dense = true;
+
+  timestamp = pkg.base_time;
+
+#ifdef BUILDING_ROS1
+  cloud.header.stamp = ros::Time(timestamp / 1000000000.0);
+#elif defined BUILDING_ROS2
+  cloud.header.stamp = rclcpp::Time(timestamp);
+#endif
+
+  cloud.data.resize(pkg.points_num * sizeof(LivoxPointXyzrlo));
+  auto* out = reinterpret_cast<LivoxPointXyzrlo*>(cloud.data.data());
+  for (size_t i = 0; i < pkg.points_num; ++i) {
+    out[i].x = pkg.points[i].x;
+    out[i].y = pkg.points[i].y;
+    out[i].z = pkg.points[i].z;
+    out[i].reflectivity = static_cast<uint8_t>(pkg.points[i].intensity);
+    out[i].tag = pkg.points[i].tag;
+    out[i].line = pkg.points[i].line;
+    out[i].reserved = 0;
+    out[i].offset_time = static_cast<uint32_t>(pkg.points[i].offset_time - pkg.base_time);
+  }
+}
+
 void Lddc::InitPclMsg(const StoragePacket& pkg, PointCloud& cloud, uint64_t& timestamp, const std::string& frame_id) {
 #ifdef BUILDING_ROS1
   cloud.header.frame_id.assign(frame_id);
@@ -534,7 +618,7 @@ void Lddc::PublishImuData(LidarImuDataQueue& imu_data_queue, const uint8_t index
 #ifdef BUILDING_ROS2
 std::shared_ptr<rclcpp::PublisherBase> Lddc::CreatePublisher(uint8_t msg_type,
     std::string &topic_name, uint32_t queue_size) {
-    if (kPointCloud2Msg == msg_type) {
+    if (kPointCloud2Msg == msg_type || kPointCloud2CustomMsg == msg_type) {
       DRIVER_INFO(*cur_node_,
           "%s publish use PointCloud2 format", topic_name.c_str());
       return cur_node_->create_publisher<PointCloud2>(topic_name, queue_size);
@@ -589,7 +673,7 @@ PublisherPtr Lddc::GetCurrentPublisher(uint8_t index) {
     }
 
     *pub = new ros::Publisher;
-    if (kPointCloud2Msg == transfer_format_) {
+    if (kPointCloud2Msg == transfer_format_ || kPointCloud2CustomMsg == transfer_format_) {
       **pub =
           cur_node_->GetNode().advertise<sensor_msgs::PointCloud2>(name_str, queue_size);
       DRIVER_INFO(*cur_node_,

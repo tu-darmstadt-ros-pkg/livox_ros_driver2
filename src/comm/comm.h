@@ -157,6 +157,18 @@ typedef struct {
   double timestamp;   /**< Timestamp of point*/
 } LivoxPointXyzrtlt;
 
+/* Same fields as CustomMsg/CustomPoint: xyz + reflectivity(u8) + tag + line + offset_time(u32 ns) */
+typedef struct {
+  float x;
+  float y;
+  float z;
+  uint8_t reflectivity;
+  uint8_t tag;
+  uint8_t line;
+  uint8_t reserved;
+  uint32_t offset_time; /**< Offset from base_time, Unit:ns */
+} LivoxPointXyzrlo;
+
 typedef struct {
   float x;
   float y;
