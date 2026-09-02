@@ -95,6 +95,17 @@ class Lddc final {
   // void SetRosPub(ros::Publisher *pub) { global_pub_ = pub; };  // NOT USED
   void SetPublishFrq(uint32_t frq) { publish_frq_ = frq; }
 
+  // Field names used for the intensity/tag/ring/time channels of the
+  // PointCloud2-with-CustomMsg-fields output (kPointCloud2CustomMsg).
+  void SetCustomPointCloud2FieldNames(const std::string &intensity_field,
+      const std::string &tag_field, const std::string &ring_field,
+      const std::string &time_field) {
+    custom_pc2_intensity_field_ = intensity_field;
+    custom_pc2_tag_field_ = tag_field;
+    custom_pc2_ring_field_ = ring_field;
+    custom_pc2_time_field_ = time_field;
+  }
+
  public:
   Lds *lds_;
 
@@ -145,6 +156,11 @@ class Lddc final {
   double publish_frq_;
   uint32_t publish_period_ns_;
   std::string frame_id_;
+
+  std::string custom_pc2_intensity_field_ = "intensity";
+  std::string custom_pc2_tag_field_ = "tag";
+  std::string custom_pc2_ring_field_ = "ring";
+  std::string custom_pc2_time_field_ = "t";
 
 #ifdef BUILDING_ROS1
   bool enable_lidar_bag_;

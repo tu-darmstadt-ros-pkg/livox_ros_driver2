@@ -61,6 +61,10 @@ int main(int argc, char **argv) {
   bool lidar_bag = true;
   bool imu_bag   = false;
   bool imu_as_gforce = false;
+  std::string custom_pc2_intensity_field = "intensity";
+  std::string custom_pc2_tag_field = "tag";
+  std::string custom_pc2_ring_field = "ring";
+  std::string custom_pc2_time_field = "t";
 
   livox_node.GetNode().getParam("xfer_format", xfer_format);
   livox_node.GetNode().getParam("multi_topic", multi_topic);
@@ -72,6 +76,10 @@ int main(int argc, char **argv) {
   livox_node.GetNode().getParam("enable_lidar_bag", lidar_bag);
   livox_node.GetNode().getParam("enable_imu_bag", imu_bag);
   livox_node.GetNode().getParam("imu_as_gforce", imu_as_gforce);
+  livox_node.GetNode().getParam("custom_pc2_intensity_field", custom_pc2_intensity_field);
+  livox_node.GetNode().getParam("custom_pc2_tag_field", custom_pc2_tag_field);
+  livox_node.GetNode().getParam("custom_pc2_ring_field", custom_pc2_ring_field);
+  livox_node.GetNode().getParam("custom_pc2_time_field", custom_pc2_time_field);
 
   
   printf("data source:%u.\n", data_src);
@@ -94,6 +102,8 @@ int main(int argc, char **argv) {
   livox_node.lddc_ptr_ = std::make_unique<Lddc>(xfer_format, multi_topic, data_src, output_type,
                         publish_freq, frame_id, lidar_bag, imu_bag);
   livox_node.lddc_ptr_->SetRosNode(&livox_node);
+  livox_node.lddc_ptr_->SetCustomPointCloud2FieldNames(custom_pc2_intensity_field,
+      custom_pc2_tag_field, custom_pc2_ring_field, custom_pc2_time_field);
 
   if (data_src == kSourceRawLidar) {
     DRIVER_INFO(livox_node, "Data Source is raw lidar.");
@@ -138,6 +148,10 @@ DriverNode::DriverNode(const rclcpp::NodeOptions & node_options)
   std::string frame_id;
   std::string imu_frame_id;
   bool imu_as_gforce = false;
+  std::string custom_pc2_intensity_field = "intensity";
+  std::string custom_pc2_tag_field = "tag";
+  std::string custom_pc2_ring_field = "ring";
+  std::string custom_pc2_time_field = "t";
 
   this->declare_parameter("xfer_format", xfer_format);
   this->declare_parameter("multi_topic", 0);
@@ -150,6 +164,10 @@ DriverNode::DriverNode(const rclcpp::NodeOptions & node_options)
   this->declare_parameter("cmdline_input_bd_code", "000000000000001");
   this->declare_parameter("lvx_file_path", "/home/livox/livox_test.lvx");
   this->declare_parameter("imu_as_gforce", imu_as_gforce);
+  this->declare_parameter("custom_pc2_intensity_field", custom_pc2_intensity_field);
+  this->declare_parameter("custom_pc2_tag_field", custom_pc2_tag_field);
+  this->declare_parameter("custom_pc2_ring_field", custom_pc2_ring_field);
+  this->declare_parameter("custom_pc2_time_field", custom_pc2_time_field);
 
   this->get_parameter("xfer_format", xfer_format);
   this->get_parameter("multi_topic", multi_topic);
@@ -159,6 +177,10 @@ DriverNode::DriverNode(const rclcpp::NodeOptions & node_options)
   this->get_parameter("frame_id", frame_id);
   this->get_parameter("imu_frame_id", imu_frame_id);
   this->get_parameter("imu_as_gforce", imu_as_gforce);
+  this->get_parameter("custom_pc2_intensity_field", custom_pc2_intensity_field);
+  this->get_parameter("custom_pc2_tag_field", custom_pc2_tag_field);
+  this->get_parameter("custom_pc2_ring_field", custom_pc2_ring_field);
+  this->get_parameter("custom_pc2_time_field", custom_pc2_time_field);
 
   if (publish_freq > 100.0) {
     publish_freq = 100.0;
@@ -178,6 +200,8 @@ DriverNode::DriverNode(const rclcpp::NodeOptions & node_options)
   /** Lidar data distribute control and lidar data source set */
   lddc_ptr_ = std::make_unique<Lddc>(xfer_format, multi_topic, data_src, output_type, publish_freq, frame_id);
   lddc_ptr_->SetRosNode(this);
+  lddc_ptr_->SetCustomPointCloud2FieldNames(custom_pc2_intensity_field,
+      custom_pc2_tag_field, custom_pc2_ring_field, custom_pc2_time_field);
 
   if (data_src == kSourceRawLidar) {
     DRIVER_INFO(*this, "Data Source is raw lidar.");

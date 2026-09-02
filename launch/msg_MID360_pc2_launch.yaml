@@ -23,6 +23,14 @@ launch:
               value: 1
             - name: publish_freq
               value: '$(var publish_freq)'
+            - name: custom_pc2_intensity_field
+              value: 'intensity'
+            - name: custom_pc2_tag_field
+              value: 'tag'
+            - name: custom_pc2_ring_field
+              value: 'ring'
+            - name: custom_pc2_time_field
+              value: 't'
         # Convert the custom livox format to PointCloud2      
         - pkg: livox_to_pointcloud2
           plugin: livox_to_pointcloud2::LivoxToPointCloud2
