@@ -15,6 +15,7 @@
   <depend>rclcpp_components</depend>
   <depend>std_msgs</depend>
   <depend>sensor_msgs</depend>
+  <depend>diagnostic_msgs</depend>
   <depend>rcutils</depend>
   <depend>pcl_conversions</depend>
   <depend>rcl_interfaces</depend>

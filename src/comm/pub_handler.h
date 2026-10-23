@@ -26,6 +26,7 @@
 #define LIVOX_DRIVER_PUB_HANDLER_H_
 
 #include <atomic>
+#include <chrono>
 #include <cstring>
 #include <condition_variable> // std::condition_variable
 #include <deque>
@@ -131,6 +132,16 @@ class PubHandler {
 };
 
 PubHandler &pub_handler();
+
+/** Timestamp type (0 no sync, 1 PTP, 2 GPS) and receive time of the last packet of a lidar, for diagnostics */
+struct TimestampStatus {
+  uint8_t time_type;
+  std::chrono::steady_clock::time_point last_packet;
+};
+/** Start recording the timestamp status of every lidar (off by default, no cost until enabled) */
+void EnableTimestampStatus();
+/** Snapshot of the status per lidar handle (IP as number) */
+std::map<uint32_t, TimestampStatus> GetTimestampStatus();
 
 }  // namespace livox_ros
 

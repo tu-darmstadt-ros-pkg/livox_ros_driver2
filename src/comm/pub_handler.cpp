@@ -33,6 +33,18 @@ namespace livox_ros {
 
 std::atomic<bool> PubHandler::is_timestamp_sync_;
 
+// Timestamp status per lidar, only recorded after EnableTimestampStatus() (diagnostics)
+static std::atomic<bool> timestamp_status_enabled{false};
+static std::mutex timestamp_status_mutex;
+static std::map<uint32_t, TimestampStatus> timestamp_status;
+
+void EnableTimestampStatus() { timestamp_status_enabled.store(true); }
+
+std::map<uint32_t, TimestampStatus> GetTimestampStatus() {
+  std::lock_guard<std::mutex> lock(timestamp_status_mutex);
+  return timestamp_status;
+}
+
 PubHandler &pub_handler() {
   static PubHandler handler;
   return handler;
@@ -100,6 +112,11 @@ void PubHandler::OnLivoxLidarPointCloudCallback(uint32_t handle, const uint8_t d
   PubHandler* self = (PubHandler*)client_data;
   if (!self) {
     return;
+  }
+
+  if (timestamp_status_enabled.load()) {
+    std::lock_guard<std::mutex> lock(timestamp_status_mutex);
+    timestamp_status[handle] = {data->time_type, std::chrono::steady_clock::now()};
   }
 
   if (data->time_type != kTimestampTypeNoSync) {
